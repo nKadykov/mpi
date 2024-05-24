@@ -14,11 +14,11 @@ int main(int argc, char** argv) {
 	double A[NUMBER][NUMBER];
 	double B[NUMBER][NUMBER];
 	double C[NUMBER][NUMBER];
-	double result[NUMBER][NUMBER];
+	double result[NUMBER];
 
 	for (int i = 0; i < NUMBER; ++i) {
 		for (int j = 0; j < NUMBER; ++j) {
-			result[i][j] = 0;
+			result[i] = 0;
 		}
 	}
 
@@ -47,7 +47,6 @@ int main(int argc, char** argv) {
 
 		MPI_Scatter(&(A[0][0]), n, MPI_DOUBLE, &(M[0]), n, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
-		std::cout << "Result:\n";
 	}
 	else {
 		MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
@@ -56,16 +55,23 @@ int main(int argc, char** argv) {
 		MPI_Scatter(&(A[0][0]), n, MPI_DOUBLE, &(M[0]), n, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 	}
 
-	for (int m = 0; m < n; ++m) {
+	for (int i = 0; i < n; ++i) {
 		for (int j = 0; j < n; ++j) {
-			result[rank][j] += M[m] * B[m][j];
+			result[j] += M[i] * B[i][j];
+			//std::cout << "rank " << rank << ": " << result[0] << " " << M[0] << " " << M[1] << " " << B[rank][0] << " " << B[rank][1] << "\n";
 		}
 	}
 
+	//std::cout << "C " << rank << ": " << result[0] << " " << result[1] << "\n";
+
+	MPI_Gather(&result[0], n, MPI_DOUBLE, &C[0][0], n, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 	if (rank == 0) {
-		//MPI_Gather(&result[0], n, MPI_DOUBLE, &C[0][0], n * n, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+		//MPI_Gather(&result[0], n, MPI_DOUBLE, &C[0][0], n, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 		for (int i = 0; i < n; ++i) {
-			/*std::cout << result[i] << ' ';*/
+			for (int j = 0; j < n; ++j) {
+				std::cout << C[i][j] << " ";
+			}
+			std::cout << std::endl;
 		}
 	}
 
